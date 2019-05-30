@@ -77,13 +77,13 @@ def create_sweeptxs_for_their_revoked_ctx(chan: 'Channel', ctx: Transaction, per
     ctn = extract_ctn_from_tx_and_chan(ctx, chan)
     assert ctn == chan.config[REMOTE].ctn
     # received HTLCs, in their ctx
-    received_htlcs = chan.included_htlcs(REMOTE, RECEIVED, ctn)
+    received_htlcs = chan.all_htlcs(REMOTE, RECEIVED, ctn)
     for htlc in received_htlcs:
         secondstage_sweep_tx = create_sweeptx_for_htlc(htlc, is_received_htlc=True)
         if secondstage_sweep_tx:
             txs.append(secondstage_sweep_tx)
     # offered HTLCs, in their ctx
-    offered_htlcs = chan.included_htlcs(REMOTE, SENT, ctn)
+    offered_htlcs = chan.all_htlcs(REMOTE, SENT, ctn)
     for htlc in offered_htlcs:
         secondstage_sweep_tx = create_sweeptx_for_htlc(htlc, is_received_htlc=False)
         if secondstage_sweep_tx:
@@ -231,8 +231,8 @@ def create_sweeptxs_for_our_ctx(chan: 'Channel', ctx: Transaction,
         txs[htlc_tx.txid() + ':0'] = ('second-stage-htlc', to_self_delay, 0, sweep_tx)
     # offered HTLCs, in our ctx --> "timeout"
     # received HTLCs, in our ctx --> "success"
-    offered_htlcs = chan.included_htlcs(LOCAL, SENT, ctn)  # type: List[UpdateAddHtlc]
-    received_htlcs = chan.included_htlcs(LOCAL, RECEIVED, ctn)  # type: List[UpdateAddHtlc]
+    offered_htlcs = chan.all_htlcs(LOCAL, SENT, ctn)  # type: List[UpdateAddHtlc]
+    received_htlcs = chan.all_htlcs(LOCAL, RECEIVED, ctn)  # type: List[UpdateAddHtlc]
     for htlc in offered_htlcs:
         create_txns_for_htlc(htlc, is_received_htlc=False)
     for htlc in received_htlcs:
@@ -326,11 +326,11 @@ def create_sweeptxs_for_their_ctx(chan: 'Channel', ctx: Transaction,
             name = f'their_ctx_sweep_htlc_{ctx.txid()[:8]}_{output_idx}'
             txs[prevout] = (name, 0, cltv_expiry, sweep_tx)
     # received HTLCs, in their ctx --> "timeout"
-    received_htlcs = chan.included_htlcs(REMOTE, RECEIVED, ctn=ctn)  # type: List[UpdateAddHtlc]
+    received_htlcs = chan.all_htlcs(REMOTE, RECEIVED, ctn)  # type: List[UpdateAddHtlc]
     for htlc in received_htlcs:
         create_sweeptx_for_htlc(htlc, is_received_htlc=True)
     # offered HTLCs, in their ctx --> "success"
-    offered_htlcs = chan.included_htlcs(REMOTE, SENT, ctn=ctn)  # type: List[UpdateAddHtlc]
+    offered_htlcs = chan.all_htlcs(REMOTE, SENT, ctn)  # type: List[UpdateAddHtlc]
     for htlc in offered_htlcs:
         create_sweeptx_for_htlc(htlc, is_received_htlc=False)
     return txs

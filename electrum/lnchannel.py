@@ -574,6 +574,10 @@ class Channel(Logger):
         fee_for_htlc = lambda htlc: htlc.amount_msat // 1000 - (weight * feerate // 1000)
         return list(filter(lambda htlc: fee_for_htlc(htlc) >= conf.dust_limit_sat, htlcs))
 
+    def all_htlcs(self, subject, direction, ctn):
+        """ unfiltered list """
+        return self.hm.htlcs_by_direction(subject, direction, ctn=ctn)
+
     def pending_feerate(self, subject):
         assert type(subject) is HTLCOwner
         candidate = self.constraints.feerate
